@@ -1,0 +1,9 @@
+# Día 1 — mié 13 may
+
+## Tarea
+Anthropic Messages API + Tool Use docs
+
+## Notas
+
+2026-05-13 | Día 1 | Messages API + Tool Use funcionando. Setup .env con ASCII encoding.
+

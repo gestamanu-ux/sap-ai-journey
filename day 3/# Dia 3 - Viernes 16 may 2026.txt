@@ -1,0 +1,15 @@
+# Dia 3 Viernes 16 may 2026 — Día 3
+
+## Tarea
+LangGraph quickstart
+
+## Objetivo
+- Entender qué es LangGraph y por qué añade valor sobre tool use puro
+- Completar el quickstart oficial
+- Tener un grafo mínimo corriendo
+
+## Pendiente de días anteriores (hacer AL FINAL)
+- git add + commit + push de todo lo hecho hasta hoy
+
+## Links
+- https://langchain-ai.github.io/langgraph/tutorials/introduction/

@@ -1,0 +1,18 @@
+# Día 2 — jue 14 may
+
+## Tarea
+MCP overview + leer 3 servidores existentes
+
+## Notas
+
+El flujo de dependencias resumido:
+
+SAP (sistema externo)
+  ↑ llamado por pyrfc
+sap_server.py  (tu server MCP, Python)
+  ↑ lanzado y conectado por el SDK
+main.py  (tu host, Python)
+  ↑ llama a
+API de Anthropic  (el LLM en la nube)
+
+2026-05-15 | Día 2 | MCP overview — server + client funcional, tool get_stock mock, Claude invoca tool autónomamente |
