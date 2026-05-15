@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP+IA Journey — Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d0d; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 32px 24px; }
+  h1 { font-size: 1.1rem; font-weight: 600; color: #888; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 32px; }
+  h1 span { color: #fff; }
+
+  .week-block { margin-bottom: 36px; }
+  .week-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #555; margin-bottom: 10px; }
+
+  .days { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .day {
+    width: 52px; height: 52px;
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    border: 1.5px solid transparent;
+    position: relative;
+    user-select: none;
+  }
+  .day:hover { transform: scale(1.08); }
+  .day .d-label { font-size: 0.6rem; color: inherit; opacity: 0.7; margin-bottom: 2px; }
+  .day .d-num { font-size: 0.85rem; font-weight: 700; }
+
+  /* States */
+  .done   { background: #1a3a1a; border-color: #2e7d32; color: #81c784; }
+  .today  { background: #1a2a3a; border-color: #1565c0; color: #90caf9; box-shadow: 0 0 10px #1565c044; }
+  .future { background: #1a1a1a; border-color: #2a2a2a; color: #444; }
+  .skip   { background: #1a1a1a; border-color: #2a2a2a; color: #333; }
+
+  .done::after {
+    content: '✓';
+    position: absolute;
+    top: 3px; right: 5px;
+    font-size: 0.6rem;
+    color: #2e7d32;
+  }
+
+  .separator { width: 100%; height: 1px; background: #1e1e1e; margin: 8px 0; }
+
+  .progress-bar-wrap { margin-top: 28px; }
+  .progress-label { font-size: 0.7rem; color: #555; margin-bottom: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .progress-bar { background: #1a1a1a; border-radius: 4px; height: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #2e7d32, #81c784); border-radius: 4px; transition: width 0.4s; }
+
+  .legend { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: #555; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>SAP+IA Journey — <span>12 semanas</span></h1>
+
+<div id="tracker"></div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-label">Progreso total — <span id="pct">0</span>% completado</div>
+  <div class="progress-bar"><div class="progress-fill" id="fill" style="width:0%"></div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#2e7d32"></div> Hecho</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1565c0"></div> Hoy</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1a1a1a; border:1px solid #2a2a2a"></div> Pendiente</div>
+</div>
+
+<script>
+const plan = [
+  {
+    label: "Semana 0 — Intro (13-17 may)",
+    days: [
+      { label: "Mar", num: 13, note: "Setup entorno", state: "done" },
+      { label: "Mié", num: 14, note: "Anthropic API + Tool Use", state: "done" },
+      { label: "Jue", num: 15, note: "MCP overview", state: "done" },
+      { label: "Vie", num: 16, note: "LangGraph quickstart", state: "today" },
+      { label: "Sáb", num: 17, note: "Mini-build hello tool use", state: "future" },
+      { label: "Dom", num: 18, note: "Retrospectiva + Semana 1 prep", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 1 — Agente con Anthropic API",
+    days: [
+      { label: "Lun", num: "S1", note: "Tool-using agent (mock tools)", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 2 — SAP-shaped agent",
+    days: [
+      { label: "Lun", num: "S2", note: "get_material_stock, get_purchase_order…", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 3 — Conexión real SAP",
+    days: [
+      { label: "Lun", num: "S3", note: "pyrfc → BAPI_FLIGHT_GETLIST", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 4 — Multi-BAPI agent",
+    days: [
+      { label: "Lun", num: "S4", note: "4-5 BAPIs reales", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 5 — MCP server público",
+    days: [
+      { label: "Lun", num: "S5", note: "BAPIs como MCP tools → GitHub", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 6 — MCP OData + CDS Views",
+    days: [
+      { label: "Lun", num: "S6", note: "8-10 tools OData", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 7 — LangGraph agent",
+    days: [
+      { label: "Lun", num: "S7", note: "Rewrite semana 4 con state", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 8 — Human-in-the-loop",
+    days: [
+      { label: "Lun", num: "S8", note: "LangGraph interrupts", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 9 — RAG SAP Notes",
+    days: [
+      { label: "Lun", num: "S9", note: "pgvector", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 10 — SAP AI Core",
+    days: [
+      { label: "Lun", num: "S10", note: "Generative AI Hub proxy", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 11 — Multimodal",
+    days: [
+      { label: "Lun", num: "S11", note: "Invoice extraction (Claude vision)", state: "future" },
+    ]
+  },
+  {
+    label: "Semana 12 — Portfolio piece #1",
+    days: [
+      { label: "Lun", num: "S12", note: "Invoice → BAPI_INCOMINGINVOICE_CREATE", state: "future" },
+    ]
+  },
+];
+
+const tracker = document.getElementById('tracker');
+let totalDone = 0, totalAll = 0;
+
+plan.forEach(week => {
+  const block = document.createElement('div');
+  block.className = 'week-block';
+
+  const label = document.createElement('div');
+  label.className = 'week-label';
+  label.textContent = week.label;
+  block.appendChild(label);
+
+  const days = document.createElement('div');
+  days.className = 'days';
+
+  week.days.forEach(d => {
+    totalAll++;
+    if (d.state === 'done') totalDone++;
+
+    const el = document.createElement('div');
+    el.className = `day ${d.state}`;
+    el.title = d.note;
+    el.innerHTML = `<span class="d-label">${d.label}</span><span class="d-num">${d.num}</span>`;
+
+    // Click toggles done/future for past days
+    el.addEventListener('click', () => {
+      if (el.classList.contains('today')) return;
+      if (el.classList.contains('done')) {
+        el.classList.replace('done', 'future');
+        totalDone--;
+      } else if (el.classList.contains('future')) {
+        el.classList.replace('future', 'done');
+        totalDone++;
+      }
+      updateProgress();
+    });
+
+    days.appendChild(el);
+  });
+
+  block.appendChild(days);
+  tracker.appendChild(block);
+});
+
+function updateProgress() {
+  const pct = Math.round((totalDone / totalAll) * 100);
+  document.getElementById('pct').textContent = pct;
+  document.getElementById('fill').style.width = pct + '%';
+}
+
+updateProgress();
+</script>
+</body>
+</html>
